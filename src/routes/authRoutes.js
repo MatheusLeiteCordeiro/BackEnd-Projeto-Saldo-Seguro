@@ -5,10 +5,16 @@ const pool = require('../config/database');
 
 // 1. Rota de Cadastro de Usuário
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
+  // Validação básica dos campos obrigatórios
+  if (!name || !email || !password || !confirmPassword) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  }
+
+  // Validação se a senha e a confirmação de senha conferem
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: 'As senhas não coincidem.' });
   }
 
   try {
@@ -16,10 +22,10 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Inserindo o usuário na tabela users
+    // Inserindo o usuário com o nome na tabela users
     const newUser = await pool.query(
-      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email',
-      [email, hashedPassword]
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
+      [name, email, hashedPassword]
     );
 
     // Criando automaticamente o perfil financeiro vazio para este usuário
@@ -33,7 +39,7 @@ router.post('/register', async (req, res) => {
       user: newUser.rows[0]
     });
   } catch (error) {
-    if (error.code === '23505') { // Violação de UNIQUE (e-mail duplicado no Postgres)
+    if (error.code === '23505') { // Violação de UNIQUE (e-mail duplicado)
       return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
     }
     console.error(error);

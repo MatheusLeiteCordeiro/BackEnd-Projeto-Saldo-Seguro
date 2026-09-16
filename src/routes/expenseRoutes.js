@@ -4,21 +4,17 @@ const pool = require('../config/database');
 
 // 1. Cadastrar nova despesa
 router.post('/', async (req, res) => {
-  const { user_id, description, amount, category, type } = req.body;
+  const { user_id, title, amount, category, date, is_recurring } = req.body;
 
-  if (!user_id || !description || amount === undefined || !type) {
+  if (!user_id || !title || !amount || !category || !date) {
     return res.status(400).json({ error: 'Preencha todos os campos obrigatórios da despesa.' });
-  }
-
-  if (amount <= 0) {
-    return res.status(400).json({ error: 'O valor da despesa deve ser maior que zero.' });
   }
 
   try {
     const newExpense = await pool.query(
-      `INSERT INTO expenses (user_id, description, amount, category, type) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [user_id, description, amount, category, type]
+      `INSERT INTO expenses (user_id, title, amount, category, date, is_recurring) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [user_id, title, amount, category, date, is_recurring || false]
     );
 
     return res.status(201).json({
@@ -27,76 +23,112 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Erro interno no servidor.' });
+    return res.status(500).json({ error: 'Erro ao cadastrar despesa.' });
   }
 });
 
-// 2. Listar todas as despesas de um usuário
+// 2. Listar extrato de despesas (com suporte a filtro por mês/ano e busca por texto)
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
+  const { month, year, search } = req.query; // Ex: ?month=09&year=2026&search=Supermercado
 
   try {
-    const expenses = await pool.query(
-      'SELECT * FROM expenses WHERE user_id = $1 ORDER BY id DESC',
-      [userId]
-    );
+    let query = 'SELECT * FROM expenses WHERE user_id = $1';
+    let params = [userId];
+    let paramIndex = 2;
 
-    return res.status(200).json(expenses.rows);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Erro interno no servidor.' });
-  }
-});
-
-// 3. Editar uma despesa
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const { description, amount, category, type } = req.body;
-
-  if (!description || amount === undefined || !type) {
-    return res.status(400).json({ error: 'Preencha os campos obrigatórios para atualização.' });
-  }
-
-  try {
-    const updatedExpense = await pool.query(
-      `UPDATE expenses 
-       SET description = $1, amount = $2, category = $3, type = $4 
-       WHERE id = $5 RETURNING *`,
-      [description, amount, category, type, id]
-    );
-
-    if (updatedExpense.rows.length === 0) {
-      return res.status(404).json({ error: 'Despesa não encontrada.' });
+    // Filtro por mês e ano 
+    if (month && year) {
+      query += ` AND EXTRACT(MONTH FROM date) = $${paramIndex} AND EXTRACT(YEAR FROM date) = $${paramIndex + 1}`;
+      params.push(month, year);
+      paramIndex += 2;
     }
 
+    // Filtro de busca por texto (barra "Buscar despesa...")
+    if (search) {
+      query += ` AND title ILIKE $${paramIndex}`;
+      params.push(`%${search}%`);
+      paramIndex += 1;
+    }
+
+    query += ' ORDER BY date DESC';
+
+    const expensesResult = await pool.query(query, params);
+
+    // Calcular o total de despesas do período filtrado
+    const totalExpenses = expensesResult.rows.reduce((acc, item) => acc + parseFloat(item.amount), 0);
+
     return res.status(200).json({
-      message: 'Despesa atualizada com sucesso!',
-      expense: updatedExpense.rows[0]
+      total_expenses: totalExpenses,
+      expenses: expensesResult.rows
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Erro interno no servidor.' });
+    return res.status(500).json({ error: 'Erro ao buscar extrato de despesas.' });
   }
 });
 
-// 4. Excluir uma despesa
+// 3. Resumo por categoria (Para alimentar o gráfico de rosca)
+router.get('/:userId/categories-summary', async (req, res) => {
+  const { userId } = req.params;
+  const { month, year } = req.query;
+
+  try {
+    let query = `
+      SELECT category, SUM(amount) as total_amount 
+      FROM expenses 
+      WHERE user_id = $1
+    `;
+    let params = [userId];
+
+    if (month && year) {
+      query += ` AND EXTRACT(MONTH FROM date) = $2 AND EXTRACT(YEAR FROM date) = $3`;
+      params.push(month, year);
+    }
+
+    query += ` GROUP BY category ORDER BY total_amount DESC`;
+
+    const summaryResult = await pool.query(query, params);
+
+    // Calcular o total geral para transformar em percentuais (ex: 56%, 20%...)
+    const totalGeneral = summaryResult.rows.reduce((acc, item) => acc + parseFloat(item.total_amount), 0);
+
+    const categoriesWithPercentage = summaryResult.rows.map(item => {
+      const amount = parseFloat(item.total_amount);
+      const percentage = totalGeneral > 0 ? ((amount / totalGeneral) * 100).toFixed(1) : 0;
+      return {
+        category: item.category,
+        total_amount: amount,
+        percentage: parseFloat(percentage)
+      };
+    });
+
+    return res.status(200).json({
+      total_general: totalGeneral,
+      categories: categoriesWithPercentage
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Erro ao gerar resumo por categorias.' });
+  }
+});
+
+// 4. Deletar uma despesa
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedExpense = await pool.query(
-      'DELETE FROM expenses WHERE id = $1 RETURNING *',
-      [id]
-    );
+    const deleteResult = await pool.query('DELETE FROM expenses WHERE id = $1 RETURNING id', [id]);
 
-    if (deletedExpense.rows.length === 0) {
+    if (deleteResult.rows.length === 0) {
       return res.status(404).json({ error: 'Despesa não encontrada.' });
     }
 
-    return res.status(200).json({ message: 'Despesa excluída com sucesso!' });
+    return res.status(200).json({ message: 'Despesa removida com sucesso.' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Erro interno no servidor.' });
+    return res.status(500).json({ error: 'Erro ao remover despesa.' });
   }
 });
 

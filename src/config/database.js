@@ -40,8 +40,8 @@ async function createTables() {
       title TEXT NOT NULL,
       amount NUMERIC(10, 2) NOT NULL,
       category TEXT DEFAULT 'Salário',
-      frequency TEXT DEFAULT 'Mensal', -- Ex: Mensal, Única, Semanal
-      receive_date INTEGER DEFAULT 1, -- Dia do mês em que recebe (ex: 1)
+      frequency TEXT DEFAULT 'Mensal', 
+      receive_date INTEGER DEFAULT 1, 
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 `);
@@ -50,7 +50,7 @@ async function createTables() {
       CREATE TABLE IF NOT EXISTS financial_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        savings_goal NUMERIC(10, 2) DEFAULT 0.00 -- Meta de reserva financeira
+        savings_goal NUMERIC(10, 2) DEFAULT 0.00 
       );
     `);
 
@@ -58,10 +58,12 @@ async function createTables() {
       CREATE TABLE IF NOT EXISTS expenses (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        description TEXT NOT NULL,
+        title TEXT NOT NULL,
         amount NUMERIC(10, 2) NOT NULL,
-        category TEXT,
-        type TEXT
+        category TEXT NOT NULL, 
+        date DATE NOT NULL,     
+        is_recurring BOOLEAN DEFAULT FALSE, 
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 

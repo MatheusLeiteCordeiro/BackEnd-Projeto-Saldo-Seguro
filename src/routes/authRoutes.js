@@ -7,10 +7,10 @@ const sendEmail = require('../config/mailer');
 
 // Rota de Cadastro de Usuário
 router.post('/register', async (req, res) => {
-  const { name, email, password, confirmPassword } = req.body;
+  const { name, email, password, confirmPassword, address } = req.body;
 
   // Validação básica dos campos obrigatórios
-  if (!name || !email || !password || !confirmPassword) {
+  if (!name || !email || !password  || !address) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
 
@@ -26,8 +26,8 @@ router.post('/register', async (req, res) => {
 
     // Inserindo o usuário com o nome na tabela users
     const newUser = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, hashedPassword]
+      'INSERT INTO users (name, email, password, address) VALUES ($1, $2, $3, $4) RETURNING id, name, email, address', 
+      [name, email, hashedPassword, address]
     );
 
     

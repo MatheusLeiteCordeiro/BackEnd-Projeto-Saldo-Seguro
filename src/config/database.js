@@ -28,7 +28,8 @@ async function createTables() {
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         reset_token TEXT,
-        reset_token_expires TIMESTAMP
+        reset_token_expires TIMESTAMP,
+        address TEXT
       );
     `);
 

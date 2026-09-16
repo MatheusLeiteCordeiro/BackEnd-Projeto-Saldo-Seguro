@@ -18,56 +18,36 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 1. Rota para Editar Usuário (E-mail ou Senha)
+// 1. Rota para Editar Usuário (E-mail ou Senha ou Endereço)
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { email, password } = req.body;
-
-  if (!email && !password) {
-    return res.status(400).json({ error: 'Informe ao menos um campo (e-mail ou senha) para atualizar.' });
-  }
+  const { name, email, address } = req.body;
 
   try {
-    // Se o usuário mandou uma nova senha, precisamos criptografá-la
-    if (password) {
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const updatedUser = await pool.query(
+      `UPDATE users 
+       SET name = COALESCE($1, name), 
+           email = COALESCE($2, email), 
+           address = COALESCE($3, address) 
+       WHERE id = $4 
+       RETURNING id, name, email, address`,
+      [name, email, address, id]
+    );
 
-      const updatedUser = await pool.query(
-        'UPDATE users SET email = COALESCE($1, email), password = $2 WHERE id = $3 RETURNING id, email',
-        [email, hashedPassword, id]
-      );
-
-      if (updatedUser.rows.length === 0) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-      }
-
-      return res.status(200).json({
-        message: 'Usuário atualizado com sucesso!',
-        user: updatedUser.rows[0]
-      });
-    } else {
-      // Se mandou apenas o e-mail para atualizar
-      const updatedUser = await pool.query(
-        'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email',
-        [email, id]
-      );
-
-      if (updatedUser.rows.length === 0) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-      }
-
-      return res.status(200).json({
-        message: 'Usuário atualizado com sucesso!',
-        user: updatedUser.rows[0]
-      });
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
+
+    return res.status(200).json({
+      message: 'Perfil atualizado com sucesso!',
+      user: updatedUser.rows[0]
+    });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(400).json({ error: 'Este e-mail já está em uso por outro usuário.' });
     }
     console.error(error);
-    return res.status(500).json({ error: 'Erro interno no servidor.' });
+    return res.status(500).json({ error: 'Erro ao atualizar perfil.' });
   }
 });
 

@@ -26,7 +26,9 @@ async function createTables() {
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        reset_token TEXT,
+        reset_token_expires TIMESTAMP
       );
     `);
 

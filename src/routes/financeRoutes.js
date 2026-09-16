@@ -2,28 +2,28 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 
-// Atualizar ou salvar a renda mensal e a reserva financeira do usuário
+// Atualizar ou salvar a meta de reserva financeira do usuário
 router.put('/:userId', async (req, res) => {
   const { userId } = req.params;
-  const { monthly_income, savings_goal } = req.body;
+  const { savings_goal } = req.body;
 
-  // Validações básicas
-  if (monthly_income === undefined || savings_goal === undefined) {
-    return res.status(400).json({ error: 'Renda mensal e meta de reserva são obrigatórias.' });
+  // Validação básica
+  if (savings_goal === undefined) {
+    return res.status(400).json({ error: 'A meta de reserva é obrigatória.' });
   }
 
-  if (monthly_income < 0 || savings_goal < 0) {
-    return res.status(400).json({ error: 'Os valores financeiros não podem ser negativos.' });
+  if (savings_goal < 0) {
+    return res.status(400).json({ error: 'O valor da meta não pode ser negativo.' });
   }
 
   try {
-    // Atualiza os dados na tabela financial_profiles para o usuário específico
+    // Atualiza apenas a meta de reserva na tabela financial_profiles
     const updateResult = await pool.query(
       `UPDATE financial_profiles 
-       SET monthly_income = $1, savings_goal = $2 
-       WHERE user_id = $3 
+       SET savings_goal = $1 
+       WHERE user_id = $2 
        RETURNING *`,
-      [monthly_income, savings_goal, userId]
+      [savings_goal, userId]
     );
 
     if (updateResult.rows.length === 0) {
@@ -31,8 +31,8 @@ router.put('/:userId', async (req, res) => {
     }
 
     return res.status(200).json({
-      message: 'Dados financeiros atualizados com sucesso!',
-      financialProfile: updateResult.rows.shift()
+      message: 'Meta financeira atualizada com sucesso!',
+      financialProfile: updateResult.rows[0]
     });
   } catch (error) {
     console.error(error);
@@ -40,18 +40,28 @@ router.put('/:userId', async (req, res) => {
   }
 });
 
-// Rota para consultar os dados financeiros do usuário
+// Rota para consultar os dados financeiros do usuário (Perfil + Renda Total calculada)
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const result = await pool.query('SELECT * FROM financial_profiles WHERE user_id = $1', [userId]);
+    // 1. Busca o perfil financeiro (meta de reserva)
+    const profileResult = await pool.query('SELECT * FROM financial_profiles WHERE user_id = $1', [userId]);
 
-    if (result.rows.length === 0) {
+    if (profileResult.rows.length === 0) {
       return res.status(404).json({ error: 'Perfil financeiro não encontrado.' });
     }
 
-    return res.status(200).json(result.rows[0]);
+    // 2. Busca todas as fontes de renda na tabela 'incomes' para calcular o total mensal
+    const incomesResult = await pool.query('SELECT SUM(amount) as total_income FROM source_of_incomes WHERE user_id = $1', [userId]);
+    const totalMonthlyIncome = incomesResult.rows[0].total_income ? parseFloat(incomesResult.rows[0].total_income) : 0;
+
+    // 3. Retorna os dados combinados
+    return res.status(200).json({
+      ...profileResult.rows[0],
+      monthly_income: totalMonthlyIncome // Dinâmico, vindo da tabela incomes
+    });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Erro interno no servidor.' });

@@ -34,11 +34,23 @@ async function createTables() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS sources_of_incomes (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      amount NUMERIC(10, 2) NOT NULL,
+      category TEXT DEFAULT 'Salário',
+      frequency TEXT DEFAULT 'Mensal', -- Ex: Mensal, Única, Semanal
+      receive_date INTEGER DEFAULT 1, -- Dia do mês em que recebe (ex: 1)
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS financial_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        monthly_income NUMERIC(10, 2) DEFAULT 0,
-        savings_goal NUMERIC(10, 2) DEFAULT 0
+        savings_goal NUMERIC(10, 2) DEFAULT 0.00 -- Meta de reserva financeira
       );
     `);
 

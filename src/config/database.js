@@ -78,6 +78,19 @@ async function createTables() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS goals (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        target_amount NUMERIC(10, 2) NOT NULL, -- Valor total da meta (ex: 12000.00)
+        current_amount NUMERIC(10, 2) DEFAULT 0.00, -- Valor já acumulado (ex: 3000.00)
+        category TEXT DEFAULT 'Personalizado', -- Ex: 'Carro', 'Viagem', 'Casa', etc.
+        deadline DATE, -- Data limite opcional para atingir o objetivo
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      `);
+
     console.log('Tabelas verificadas/criadas com sucesso no PostgreSQL!');
   } catch (error) {
     console.error('Erro ao criar tabelas:', error);

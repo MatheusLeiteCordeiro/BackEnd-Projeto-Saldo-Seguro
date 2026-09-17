@@ -15,6 +15,8 @@ const calculationRoutes = require('./routes/calculationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const classificationRoutes = require('./routes/classificationRoutes');
 const sourcesOfIncomeRoutes = require('./routes/sourcesOfIncomeRoutes');
+const goalRoutes = require('./routes/goalRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +38,9 @@ app.use('/calculations', calculationRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/classification', classificationRoutes);
 app.use('/sourceOfIncomes', sourcesOfIncomeRoutes);
+app.use('/goals', goalRoutes);
+app.use('/reports', reportRoutes);
+
 
 
 // Rota de teste geral

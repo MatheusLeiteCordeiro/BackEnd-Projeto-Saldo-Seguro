@@ -41,9 +41,7 @@ const pool = require('../config/database');
  *       500:
  *         description: Erro interno no servidor.
  */
-router.get('/:userId', async (req, res) => {
-  // ... seu código atual da rota ...
-});
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 

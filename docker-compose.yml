@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: saldo_seguro_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: saldoseguro
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: saldo_seguro_api
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=database
+      - DB_USER=postgres
+      - DB_PASSWORD=secretpassword
+      - DB_NAME=saldoseguro
+      - DB_PORT=5432
+    depends_on:
+      - database
+
+volumes:
+  pgdata:

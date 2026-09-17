@@ -3,6 +3,38 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Rota para listar todos os usuários cadastrados
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Lista todos os usuários cadastrados no sistema
+ *     tags: [Usuários]
+ *     responses:
+ *       200:
+ *         description: Lista de usuários retornada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: "Matheus Emanuel"
+ *                   email:
+ *                     type: string
+ *                     example: "matheus@teste.com"
+ *                   address:
+ *                     type: string
+ *                     example: "Belo Jardim - PE"
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/', async (req, res) => {
   try {
     // Busca todos os usuários, mas por segurança omitimos o campo 'password'
@@ -19,6 +51,47 @@ router.get('/', async (req, res) => {
 });
 
 // 1. Rota para Editar Usuário (E-mail ou Senha ou Endereço)
+/**
+ * @swagger
+ * /users/{id}:
+ *   put:
+ *     summary: Atualiza os dados de um usuário (e-mail, senha ou endereço)
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Matheus Emanuel Leite"
+ *               email:
+ *                 type: string
+ *                 example: "matheus.novo@teste.com"
+ *               password:
+ *                 type: string
+ *                 example: "novaSenha123"
+ *               address:
+ *                 type: string
+ *                 example: "Sanharó - PE"
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado com sucesso.
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { name, email, address } = req.body;
@@ -52,6 +125,28 @@ router.put('/:id', async (req, res) => {
 });
 
 // 2. Rota para Deletar Usuário
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Exclui a conta e todos os dados associados do usuário
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Conta e dados do usuário excluídos com sucesso.
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -76,6 +171,41 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Rota para exportar todos os dados do usuário (Backup em JSON)
+/**
+ * @swagger
+ * /users/{id}/export:
+ *   get:
+ *     summary: Exporta todos os dados do usuário em formato JSON (Backup completo)
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Dados exportados com sucesso em formato JSON.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user_profile:
+ *                   type: object
+ *                 incomes:
+ *                   type: array
+ *                 expenses:
+ *                   type: array
+ *                 goals:
+ *                   type: array
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:id/export', async (req, res) => {
   const { id } = req.params;
 
@@ -110,45 +240,6 @@ router.get('/:id/export', async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Erro ao exportar os dados do usuário.' });
-  }
-});
-
-// Rota para excluir todos os dados e a conta do usuário
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Iniciando uma transação para garantir que tudo seja apagado de forma segura
-    await pool.query('BEGIN');
-
-    // 1. Deletar despesas do usuário
-    await pool.query('DELETE FROM expenses WHERE user_id = $1', [id]);
-
-    // 2. Deletar parcelamentos do usuário
-    await pool.query('DELETE FROM installments WHERE user_id = $1', [id]);
-
-    // 3. Deletar perfil financeiro
-    await pool.query('DELETE FROM financial_profiles WHERE user_id = $1', [id]);
-
-    // 4. Por fim, deletar o usuário
-    const deleteUser = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
-
-    if (deleteUser.rows.length === 0) {
-      await pool.query('ROLLBACK');
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
-
-    // Confirma a transação
-    await pool.query('COMMIT');
-
-    return res.status(200).json({
-      message: 'Todos os dados e a conta foram excluídos com sucesso.'
-    });
-
-  } catch (error) {
-    await pool.query('ROLLBACK');
-    console.error(error);
-    return res.status(500).json({ error: 'Erro ao excluir os dados do usuário.' });
   }
 });
 

@@ -3,6 +3,54 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // 1. Listar todos os objetivos do usuário (e calcular o total acumulado geral)
+/**
+ * @swagger
+ * /goals/{userId}:
+ *   get:
+ *     summary: Lista todos os objetivos do usuário e calcula o total acumulado geral
+ *     tags: [Objetivos]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de objetivos retornada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_accumulated:
+ *                   type: number
+ *                   example: 3250.00
+ *                 goals:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       title:
+ *                         type: string
+ *                         example: "Comprar um carro"
+ *                       target_amount:
+ *                         type: number
+ *                         example: 12000.00
+ *                       current_amount:
+ *                         type: number
+ *                         example: 3000.00
+ *                       percentage:
+ *                         type: integer
+ *                         example: 25
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -41,6 +89,51 @@ router.get('/:userId', async (req, res) => {
 });
 
 // 2. Criar um novo objetivo
+/**
+ * @swagger
+ * /goals:
+ *   post:
+ *     summary: Cria um novo objetivo financeiro
+ *     tags: [Objetivos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - title
+ *               - target_amount
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 1
+ *               title:
+ *                 type: string
+ *                 example: "Comprar um carro"
+ *               target_amount:
+ *                 type: number
+ *                 example: 12000.00
+ *               current_amount:
+ *                 type: number
+ *                 example: 3000.00
+ *               category:
+ *                 type: string
+ *                 example: "Carro"
+ *               deadline:
+ *                 type: string
+ *                 format: date
+ *                 example: "2027-12-31"
+ *     responses:
+ *       201:
+ *         description: Objetivo criado com sucesso!
+ *       400:
+ *         description: Campos obrigatórios faltando.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.post('/', async (req, res) => {
   const { user_id, title, target_amount, current_amount, category, deadline } = req.body;
 
@@ -73,6 +166,42 @@ router.post('/', async (req, res) => {
 });
 
 // 3. Atualizar o valor acumulado de um objetivo (ex: quando o usuário guarda mais dinheiro nele)
+/**
+ * @swagger
+ * /goals/{id}/deposit:
+ *   put:
+ *     summary: Atualiza o valor acumulado (depósito) de um objetivo específico
+ *     tags: [Objetivos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do objetivo
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount_added
+ *             properties:
+ *               amount_added:
+ *                 type: number
+ *                 example: 500.00
+ *     responses:
+ *       200:
+ *         description: Progresso do objetivo atualizado com sucesso.
+ *       400:
+ *         description: Valor inválido informado.
+ *       404:
+ *         description: Objetivo não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.put('/:id/deposit', async (req, res) => {
   const { id } = req.params;
   const { amount_added } = req.body;
@@ -105,6 +234,28 @@ router.put('/:id/deposit', async (req, res) => {
 });
 
 // 4. Deletar um objetivo
+/**
+ * @swagger
+ * /goals/{id}:
+ *   delete:
+ *     summary: Remove um objetivo pelo ID
+ *     tags: [Objetivos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do objetivo
+ *     responses:
+ *       200:
+ *         description: Objetivo removido com sucesso.
+ *       404:
+ *         description: Objetivo não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

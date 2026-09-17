@@ -3,6 +3,68 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Rota para fornecer todos os dados agregados do Dashboard do usuário
+/**
+ * @swagger
+ * /reports/{userId}:
+ *   get:
+ *     summary: Fornece todos os dados agregados do Dashboard e Relatórios do usuário
+ *     tags: [Relatórios e Dashboard]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *     responses:
+ *       200:
+ *         description: Dados do relatório consolidados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 selected_period:
+ *                   type: string
+ *                   example: "09/2026"
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     total_receitas:
+ *                       type: number
+ *                       example: 3000.00
+ *                     total_despesas:
+ *                       type: number
+ *                       example: 1750.00
+ *                     saldo_mes:
+ *                       type: number
+ *                       example: 1250.00
+ *                 historical_expenses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       year_month:
+ *                         type: string
+ *                         example: "2026-09"
+ *                       total_expense:
+ *                         type: string
+ *                         example: "1750.00"
+ *       500:
+ *         description: Erro interno ao gerar dados do relatório.
+ */
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 

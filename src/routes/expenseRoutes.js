@@ -3,6 +3,53 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // 1. Cadastrar nova despesa
+/**
+ * @swagger
+ * /expenses:
+ *   post:
+ *     summary: Cadastra uma nova despesa
+ *     tags: [Despesas]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - title
+ *               - amount
+ *               - category
+ *               - date
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 1
+ *               title:
+ *                 type: string
+ *                 example: "Supermercado"
+ *               amount:
+ *                 type: number
+ *                 example: 120.00
+ *               category:
+ *                 type: string
+ *                 example: "Alimentação"
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2026-09-12"
+ *               is_recurring:
+ *                 type: boolean
+ *                 example: false
+ *     responses:
+ *       201:
+ *         description: Despesa cadastrada com sucesso!
+ *       400:
+ *         description: Campos obrigatórios faltando.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.post('/', async (req, res) => {
   const { user_id, title, amount, category, date, is_recurring } = req.body;
 
@@ -28,6 +75,56 @@ router.post('/', async (req, res) => {
 });
 
 // 2. Listar extrato de despesas (com suporte a filtro por mês/ano e busca por texto)
+/**
+ * @swagger
+ * /expenses/{userId}:
+ *   get:
+ *     summary: Lista o extrato de despesas do usuário com filtros opcionais
+ *     tags: [Despesas]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Termo de busca por texto no título
+ *     responses:
+ *       200:
+ *         description: Extrato listado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_expenses:
+ *                   type: number
+ *                   example: 120.00
+ *                 expenses:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { month, year, search } = req.query; // Ex: ?month=09&year=2026&search=Supermercado
@@ -68,7 +165,62 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
+
+
 // 3. Resumo por categoria (Para alimentar o gráfico de rosca)
+/**
+ * @swagger
+ * /expenses/{userId}/categories-summary:
+ *   get:
+ *     summary: Retorna o resumo de despesas por categoria com percentuais para o gráfico de rosca
+ *     tags: [Despesas]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *     responses:
+ *       200:
+ *         description: Resumo por categorias calculado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_general:
+ *                   type: number
+ *                   example: 1250.00
+ *                 categories:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                         example: "Moradia"
+ *                       total_amount:
+ *                         type: number
+ *                         example: 700.00
+ *                       percentage:
+ *                         type: number
+ *                         example: 56.0
+ *       500:
+ *         description: Erro interno no servidor.
+ */
 router.get('/:userId/categories-summary', async (req, res) => {
   const { userId } = req.params;
   const { month, year } = req.query;
@@ -115,6 +267,28 @@ router.get('/:userId/categories-summary', async (req, res) => {
 });
 
 // 4. Deletar uma despesa
+/**
+ * @swagger
+ * /expenses/{id}:
+ *   delete:
+ *     summary: Remove uma despesa pelo ID
+ *     tags: [Despesas]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único da despesa
+ *     responses:
+ *       200:
+ *         description: Despesa removida com sucesso.
+ *       404:
+ *         description: Despesa não encontrada.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

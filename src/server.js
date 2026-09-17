@@ -17,6 +17,8 @@ const classificationRoutes = require('./routes/classificationRoutes');
 const sourcesOfIncomeRoutes = require('./routes/sourcesOfIncomeRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const homeRoutes = require('./routes/homeRoutes');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,8 +42,10 @@ app.use('/classification', classificationRoutes);
 app.use('/sourceOfIncomes', sourcesOfIncomeRoutes);
 app.use('/goals', goalRoutes);
 app.use('/reports', reportRoutes);
+app.use('/home', homeRoutes);
 
-
+// Inicializa a documentação Swagger
+setupSwagger(app);
 
 // Rota de teste geral
 app.get('/', (req, res) => {

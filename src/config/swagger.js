@@ -8,7 +8,7 @@ const options = {
     info: {
       title: 'API do Saldo Seguro - Financeiro',
       version: '1.0.0',
-      description: 'Documentação oficial das rotas do backend do aplicativo Saldo Seguro (Projeto IFPE)[cite: 1].',
+      description: 'Documentação oficial das rotas do backend do aplicativo Saldo Seguro.',
     },
     servers: [
       {

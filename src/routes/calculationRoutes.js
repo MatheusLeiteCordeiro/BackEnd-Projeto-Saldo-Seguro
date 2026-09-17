@@ -3,6 +3,47 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Rota para calcular o saldo disponível e o limite semanal do usuário
+/**
+ * @swagger
+ * /calculation/{userId}:
+ *   get:
+ *     summary: Calcula o saldo disponível e o limite semanal do usuário
+ *     tags: [Cálculos Financeiros]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Dados de cálculo retornados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_income:
+ *                   type: number
+ *                   example: 3000.00
+ *                 total_expenses:
+ *                   type: number
+ *                   example: 1250.00
+ *                 available_balance:
+ *                   type: number
+ *                   example: 1750.00
+ *                 weekly_limit:
+ *                   type: number
+ *                   example: 437.50
+ *       404:
+ *         description: Usuário ou dados financeiros não encontrados.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+router.get('/:userId', async (req, res) => {
+  // ... seu código atual da rota ...
+});
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 

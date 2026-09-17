@@ -3,6 +3,38 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Rota de Relatório Consolidado para o Dashboard/Relatórios
+/**
+ * @swagger
+ * /reports/{userId}:
+ *   get:
+ *     summary: Fornece todos os dados agregados do Dashboard e Relatórios do usuário
+ *     tags: [Relatórios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *     responses:
+ *       200:
+ *         description: Dados do relatório consolidados com sucesso.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { month, year } = req.query; 
@@ -60,6 +92,45 @@ router.get('/:userId', async (req, res) => {
 });
 
 // 1. Rota para o Gráfico de Barras: Comparativo Histórico (Receitas x Despesas por mês)
+/**
+ * @swagger
+ * /reports/{userId}/chart-comparison:
+ *   get:
+ *     summary: Retorna os dados para o gráfico de barras comparativo entre receitas e despesas ao longo dos meses
+ *     tags: [Relatórios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Dados do gráfico de comparação retornados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   period:
+ *                     type: string
+ *                     example: "2026-09"
+ *                   month_label:
+ *                     type: string
+ *                     example: "Sep"
+ *                   receitas:
+ *                     type: number
+ *                     example: 3000.00
+ *                   despesas:
+ *                     type: number
+ *                     example: 1750.00
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId/chart-comparison', async (req, res) => {
   const { userId } = req.params;
 
@@ -102,6 +173,60 @@ router.get('/:userId/chart-comparison', async (req, res) => {
 });
 
 // 2. Rota para o Gráfico de Rosca: Despesas por Categoria (com porcentagens)
+/**
+ * @swagger
+ * /reports/{userId}/chart-categories:
+ *   get:
+ *     summary: Retorna os dados para o gráfico de rosca de despesas por categoria com percentuais
+ *     tags: [Relatórios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *     responses:
+ *       200:
+ *         description: Dados do gráfico de categorias retornados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_general:
+ *                   type: number
+ *                   example: 1750.00
+ *                 categories:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                         example: "Moradia"
+ *                       amount:
+ *                         type: number
+ *                         example: 700.00
+ *                       percentage:
+ *                         type: number
+ *                         example: 40.0
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId/chart-categories', async (req, res) => {
   const { userId } = req.params;
   const { month, year } = req.query; // Ex: ?month=09&year=2026
@@ -148,6 +273,60 @@ router.get('/:userId/chart-categories', async (req, res) => {
 });
 
 // Rota para calcular o resumo com variações percentuais em relação ao mês anterior
+/**
+ * @swagger
+ * /reports/{userId}/monthly-comparison:
+ *   get:
+ *     summary: Calcula o resumo financeiro com variações percentuais em relação ao mês anterior e insights dinâmicos
+ *     tags: [Relatórios]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Mês de referência (ex. 09)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Ano de referência (ex. 2026)
+ *     responses:
+ *       200:
+ *         description: Comparativo mensal calculado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 period:
+ *                   type: string
+ *                   example: "2026-09"
+ *                 previous_period:
+ *                   type: string
+ *                   example: "2026-08"
+ *                 cards:
+ *                   type: object
+ *                 insight:
+ *                   type: object
+ *                   properties:
+ *                     category:
+ *                       type: string
+ *                       example: "Lazer"
+ *                     message:
+ *                       type: string
+ *                       example: "Você gastou 18% menos com lazer este mês. Continue assim!"
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId/monthly-comparison', async (req, res) => {
   const { userId } = req.params;
   const { month, year } = req.query; // Ex: ?month=09&year=2026

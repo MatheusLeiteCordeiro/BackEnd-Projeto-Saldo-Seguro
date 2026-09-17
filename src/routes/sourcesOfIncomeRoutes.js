@@ -3,6 +3,51 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // 1. Listar todas as fontes de renda de um usuário (e calcular o total mensal)
+/**
+ * @swagger
+ * /incomes/{userId}:
+ *   get:
+ *     summary: Lista todas as fontes de renda de um usuário e calcula o total mensal
+ *     tags: [Fontes de Renda]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de fontes de renda retornada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_income:
+ *                   type: number
+ *                   example: 3000.00
+ *                 incomes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       title:
+ *                         type: string
+ *                         example: "Salário Principal"
+ *                       amount:
+ *                         type: number
+ *                         example: 3000.00
+ *                       category:
+ *                         type: string
+ *                         example: "Salário"
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -26,6 +71,44 @@ router.get('/:userId', async (req, res) => {
 });
 
 // 2. Adicionar uma nova fonte de renda
+/**
+ * @swagger
+ * /incomes:
+ *   post:
+ *     summary: Adiciona uma nova fonte de renda
+ *     tags: [Fontes de Renda]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - title
+ *               - amount
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 1
+ *               title:
+ *                 type: string
+ *                 example: "Freelance de Desenvolvimento"
+ *               amount:
+ *                 type: number
+ *                 example: 1500.00
+ *               category:
+ *                 type: string
+ *                 example: "Extra"
+ *     responses:
+ *       201:
+ *         description: Fonte de renda cadastrada com sucesso!
+ *       400:
+ *         description: Campos obrigatórios faltando.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.post('/', async (req, res) => {
   const { user_id, title, amount, frequency, receive_date } = req.body;
 
@@ -51,6 +134,28 @@ router.post('/', async (req, res) => {
 });
 
 // 3. Deletar uma fonte de renda
+/**
+ * @swagger
+ * /incomes/{id}:
+ *   delete:
+ *     summary: Remove uma fonte de renda pelo ID
+ *     tags: [Fontes de Renda]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único da fonte de renda
+ *     responses:
+ *       200:
+ *         description: Fonte de renda removida com sucesso.
+ *       404:
+ *         description: Fonte de renda não encontrada.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

@@ -3,6 +3,54 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // 1. Cadastrar nova compra parcelada
+/**
+ * @swagger
+ * /installments:
+ *   post:
+ *     summary: Cadastra uma nova compra parcelada
+ *     tags: [Parcelamentos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *               - title
+ *               - total_amount
+ *               - installments_count
+ *               - category
+ *               - first_due_date
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 1
+ *               title:
+ *                 type: string
+ *                 example: "Smartphone Novo"
+ *               total_amount:
+ *                 type: number
+ *                 example: 1200.00
+ *               installments_count:
+ *                 type: integer
+ *                 example: 10
+ *               category:
+ *                 type: string
+ *                 example: "Eletrônicos"
+ *               first_due_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2026-10-10"
+ *     responses:
+ *       201:
+ *         description: Compra parcelada cadastrada com sucesso!
+ *       400:
+ *         description: Campos obrigatórios faltando.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.post('/', async (req, res) => {
   const { user_id, description, total_amount, installments_count } = req.body;
 
@@ -35,6 +83,51 @@ router.post('/', async (req, res) => {
 });
 
 // 2. Listar todas as compras parceladas de um usuário
+/**
+ * @swagger
+ * /installments/{userId}:
+ *   get:
+ *     summary: Lista todas as compras parceladas de um usuário
+ *     tags: [Parcelamentos]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de compras parceladas retornada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   title:
+ *                     type: string
+ *                     example: "Smartphone Novo"
+ *                   total_amount:
+ *                     type: number
+ *                     example: 1200.00
+ *                   installments_count:
+ *                     type: integer
+ *                     example: 10
+ *                   installment_value:
+ *                     type: number
+ *                     example: 120.00
+ *                   category:
+ *                     type: string
+ *                     example: "Eletrônicos"
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -52,6 +145,28 @@ router.get('/:userId', async (req, res) => {
 });
 
 // 3. Excluir uma compra parcelada
+/**
+ * @swagger
+ * /installments/{id}:
+ *   delete:
+ *     summary: Remove uma compra parcelada pelo ID
+ *     tags: [Parcelamentos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único da compra parcelada
+ *     responses:
+ *       200:
+ *         description: Compra parcelada removida com sucesso.
+ *       404:
+ *         description: Compra parcelada não encontrada.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 

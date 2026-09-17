@@ -3,6 +3,50 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Rota para analisar os dados financeiros e retornar a classificação da situação do usuário
+/**
+ * @swagger
+ * /classification/{userId}:
+ *   get:
+ *     summary: Analisa os dados financeiros e retorna a classificação da situação do usuário
+ *     tags: [Classificação Financeira]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Análise e classificação financeira realizadas com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "Saudável"
+ *                 message:
+ *                   type: string
+ *                   example: "Suas finanças estão sob controle. Parabéns!"
+ *                 total_income:
+ *                   type: number
+ *                   example: 3000.00
+ *                 total_expenses:
+ *                   type: number
+ *                   example: 1250.00
+ *                 expense_percentage:
+ *                   type: number
+ *                   example: 41.7
+ *       404:
+ *         description: Dados financeiros ou usuário não encontrados.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+router.get('/:userId', async (req, res) => {
+  // ... seu código atual da rota ...
+});
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 

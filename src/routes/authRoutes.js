@@ -5,7 +5,50 @@ const pool = require('../config/database');
 const crypto = require('crypto'); // Biblioteca nativa do Node.js para gerar tokens seguros
 const sendEmail = require('../config/mailer');
 
+
 // Rota de Cadastro de Usuário
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Cadastra um novo usuário no sistema
+ *     tags: [Autenticação]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - confirmPassword
+ *               - address
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Matheus Emanuel
+ *               email:
+ *                 type: string
+ *                 example: matheus@teste.com
+ *               password:
+ *                 type: string
+ *                 example: "123456"
+ *               confirmPassword:
+ *                 type: string
+ *                 example: "123456"
+ *               address:
+ *                 type: string
+ *                 example: Belo Jardim - PE
+ *     responses:
+ *       201:
+ *         description: Usuário cadastrado com sucesso!
+ *       400:
+ *         description: Campos obrigatórios faltando, senhas não coincidem ou e-mail já cadastrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
 router.post('/register', async (req, res) => {
   const { name, email, password, confirmPassword, address } = req.body;
 
@@ -51,6 +94,36 @@ router.post('/register', async (req, res) => {
 });
 
 // Rota de Login
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Realiza o login do usuário
+ *     tags: [Autenticação]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: matheus@teste.com
+ *               password:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *           description: Login realizado com sucesso.
+ *       401:
+ *           description: E-mail ou senha inválidos.
+ *       500:
+ *           description: Erro interno no servidor.
+ */
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -87,6 +160,34 @@ router.post('/login', async (req, res) => {
 });
 
 // Solicitar a recuperação de senha (Envia o e-mail com o link/token)
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Solicita a recuperação de senha enviando um e-mail com token
+ *     tags: [Autenticação]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: matheus@teste.com
+ *     responses:
+ *       200:
+ *           description: E-mail de redefinição enviado com sucesso.
+ *       400:
+ *           description: E-mail não informado.
+ *       404:
+ *           description: E-mail não encontrado no sistema.
+ *       500:
+ *           description: Erro interno no servidor.
+ */
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
@@ -137,6 +238,40 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // Cadastrar a nova senha (Valida o token e atualiza a senha escolhida pelo usuário)
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Cadastra uma nova senha utilizando o token enviado por e-mail
+ *     tags: [Autenticação]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: matheus@teste.com
+ *               token:
+ *                 type: string
+ *                 example: "a1b2c3d4e5f6..."
+ *               newPassword:
+ *                 type: string
+ *                 example: "novaSenha123"
+ *     responses:
+ *       200:
+ *           description: Senha alterada com sucesso.
+ *       400:
+ *           description: Todos os campos são obrigatórios ou token inválido/expirado.
+ *       500:
+ *           description: Erro interno no servidor.
+ */
 router.post('/reset-password', async (req, res) => {
   const { email, token, newPassword } = req.body;
 

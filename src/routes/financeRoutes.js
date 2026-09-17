@@ -3,6 +3,45 @@ const router = express.Router();
 const pool = require('../config/database');
 
 // Atualizar ou salvar a meta de reserva financeira do usuário
+/**
+ * @swagger
+ * /finance/{userId}:
+ *   put:
+ *     summary: Atualiza ou salva a meta de reserva financeira do usuário
+ *     tags: [Configurações Financeiras]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - savings_goal
+ *               - monthly_income
+ *             properties:
+ *               savings_goal:
+ *                 type: number
+ *                 example: 2000.00
+ *               monthly_income:
+ *                 type: number
+ *                 example: 3000.00
+ *     responses:
+ *       200:
+ *         description: Dados financeiros atualizados com sucesso.
+ *       400:
+ *         description: Dados obrigatórios faltando.
+ *       404:
+ *         description: Perfil financeiro ou usuário não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
 router.put('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { savings_goal } = req.body;
@@ -41,6 +80,45 @@ router.put('/:userId', async (req, res) => {
 });
 
 // Rota para consultar os dados financeiros do usuário (Perfil + Renda Total calculada)
+/**
+ * @swagger
+ * /finance/{userId}:
+ *   get:
+ *     summary: Consulta os dados financeiros base do usuário (Perfil e Renda cadastrada)
+ *     tags: [Configurações Financeiras]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID único do usuário
+ *     responses:
+ *       200:
+ *         description: Dados financeiros retornados com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 user_id:
+ *                   type: integer
+ *                   example: 1
+ *                 savings_goal:
+ *                   type: number
+ *                   example: 2000.00
+ *                 monthly_income:
+ *                   type: number
+ *                   example: 3000.00
+ *       404:
+ *         description: Perfil financeiro não encontrado.
+ *       500:
+ *         description: Erro interno no servidor.
+ */
+
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
 

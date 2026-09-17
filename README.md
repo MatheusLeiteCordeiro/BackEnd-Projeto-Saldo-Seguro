@@ -22,7 +22,7 @@ O sistema está modularizado nas seguintes rotas principais:
 * **`/calculation`** & **`/classification`** - Análises de saldo, limite semanal e situação financeira
 * **`/goals`** - Gestão de objetivos e metas de economia
 * **`/installments`** - Controle de compras parceladas
-* **`/incomes`** - Gestão de fontes de renda
+* **`/sourcesOfIncomes`** - Gestão de fontes de renda
 * **`/reports`** - Relatórios detalhados e gráficos comparativos
 * **`/users`** - Gerenciamento de perfil, edição e exportação de dados (backup)
 * **`/finance`** - Configurações financeiras globais
